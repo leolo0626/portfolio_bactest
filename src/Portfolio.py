@@ -6,6 +6,8 @@ class Portfolio(Account) :
         super().__init__()
         self.size = 0
         self.positions = {}
+        self.positions_pending_to_sell = []
+
     
     def add_long_position(self, order: Order):
         if order.action == 'b' and self.cash >= order.total_amount:
@@ -44,6 +46,14 @@ class Portfolio(Account) :
             return target_position
         else:
             raise Exception("Something went wrong in cover position ")
+
+    def monitor_sell_cond(self, sell_cond_func, sell_cond_params):
+        for position in self.positions : 
+            sell_cond_params['ticker'] = position
+            if sell_cond_func(**sell_cond_params) :
+                self.positions_pending_to_sell.append(sell_cond_params['ticker'])
+
+
 
 
 
