@@ -51,7 +51,7 @@ class Portfolio(Account) :
         for position in self.positions : 
             sell_cond_params['ticker'] = position
             if sell_cond_func(**sell_cond_params) :
-                self.positions_pending_to_sell.append(sell_cond_params['ticker'])
+                self.positions_pending_to_sell.append(self.positions[position])
 
 
 
