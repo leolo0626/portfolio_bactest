@@ -1,5 +1,6 @@
 from .Account import Account
 from .Order import Order 
+from .DataLibrary import DataLibrary
 
 class Portfolio(Account) :
     def __init__ (self):
@@ -46,6 +47,18 @@ class Portfolio(Account) :
             return target_position
         else:
             raise Exception("Something went wrong in cover position ")
+
+    def update_account_summary(self, date_time , data_library : DataLibrary) :
+        net_asset_value = 0
+        for position in self.positions : 
+            stock_price = data_library.stock_price_library[position]
+            closing_price = stock_price.loc[stock_price.date_time == date_time, 'close'].values[0]
+            self.positions[position]['last_price'] = closing_price
+            self.positions[position]['market_value'] = closing_price * self.positions[position]['shares']
+            self.positions[position]['unrealized_pnl'] = self.positions[position]['market_value'] - self.positions[position]['total_cost']
+            net_asset_value = net_asset_value + self.positions[position]['market_value'] 
+        self.net_asset_value = net_asset_value + self.cash
+
 
     def monitor_sell_cond(self, sell_cond_func, sell_cond_params):
         for position in self.positions : 

@@ -88,7 +88,25 @@ class Test1(unittest.TestCase):
             'data_library' : self.data_library
         })
         
-        self.assertEqual(['2382'], self.portfolio.positions_pending_to_sell)
+        self.assertEqual('2382', self.portfolio.positions_pending_to_sell[0]['ticker'])
+    
+    def test_update_account_value(self):
+        self.portfolio = Portfolio()
+        self.portfolio.add_capital(1000000)
+        new_order = Order('2382', 170, 500, 0, 'b')
+        self.portfolio.add_long_position(new_order)
+        self.assertEqual(915000, self.portfolio.cash)
+        self.assertEqual(1000000, self.portfolio.net_asset_value)
+        date_time_list = ['2021-07-29', '2021-07-30']
+        closing_price_lst = [236.2, 235.2]
+        net_asset_value = [ closing * 500 + 915000 for closing in closing_price_lst ]
+       
+        for i in range(len(date_time_list)) :
+            self.portfolio.update_account_summary(date_time_list[i] ,self.data_library)
+            self.assertEqual(net_asset_value[i], self.portfolio.net_asset_value)
+            self.assertEqual(915000, self.portfolio.cash)
+
+
         
 
     # def test_boolean(self):
