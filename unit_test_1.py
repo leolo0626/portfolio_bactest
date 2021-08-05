@@ -117,7 +117,7 @@ class Test1(unittest.TestCase):
             self.assertEqual(net_asset_value[i], self.portfolio.net_asset_value)
             self.assertEqual(915000, self.portfolio.cash)
             # print(self.account_summary.history)
-            # print(self.account_summary.position_history)
+            print(self.account_summary.position_history)
 
 
         

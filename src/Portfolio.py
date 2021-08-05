@@ -4,6 +4,7 @@ from .Trade import Trade
 from .DataLibrary import DataLibrary
 from .TradeRecordManager import TradeRecordManager
 from .AccountSummary import AccountSummary
+import copy
 
 class Portfolio(Account) :
     def __init__ (self, trade_record_manager : TradeRecordManager, account_summary : AccountSummary):
@@ -57,16 +58,20 @@ class Portfolio(Account) :
 
     def update_account_summary(self, date_time , data_library : DataLibrary) :
         net_asset_value = 0
-        for position in self.positions : 
+        positions = self.positions
+        for position in positions : 
             stock_price = data_library.stock_price_library[position]
             closing_price = stock_price.loc[stock_price.date_time == date_time, 'close'].values[0]
-            self.positions[position]['last_price'] = closing_price
-            self.positions[position]['market_value'] = closing_price * self.positions[position]['shares']
-            self.positions[position]['unrealized_pnl'] = self.positions[position]['market_value'] - self.positions[position]['total_cost']
-            net_asset_value = net_asset_value + self.positions[position]['market_value'] 
+            print(closing_price)
+            positions[position]['last_price'] = closing_price
+            positions[position]['market_value'] = closing_price * positions[position]['shares']
+            positions[position]['unrealized_pnl'] = positions[position]['market_value'] - positions[position]['total_cost']
+            net_asset_value = net_asset_value + positions[position]['market_value'] 
         self.net_asset_value = net_asset_value + self.cash
         self.account_summary.add_account_summary(date_time, self.net_asset_value, self.cash)
-        self.account_summary.add_position_history(date_time, self.positions)
+        print(positions)
+        self.account_summary.add_position_history(date_time, copy.deepcopy(positions))
+        self.positions = positions
 
 
     def monitor_sell_cond(self, sell_cond_func, sell_cond_params):
