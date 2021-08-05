@@ -66,6 +66,7 @@ class Portfolio(Account) :
             net_asset_value = net_asset_value + self.positions[position]['market_value'] 
         self.net_asset_value = net_asset_value + self.cash
         self.account_summary.add_account_summary(date_time, self.net_asset_value, self.cash)
+        self.account_summary.add_position_history(date_time, self.positions)
 
 
     def monitor_sell_cond(self, sell_cond_func, sell_cond_params):

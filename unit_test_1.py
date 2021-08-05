@@ -116,7 +116,8 @@ class Test1(unittest.TestCase):
             self.portfolio.update_account_summary(date_time_list[i] ,self.data_library)
             self.assertEqual(net_asset_value[i], self.portfolio.net_asset_value)
             self.assertEqual(915000, self.portfolio.cash)
-            print(self.account_summary.history)
+            # print(self.account_summary.history)
+            # print(self.account_summary.position_history)
 
 
         
