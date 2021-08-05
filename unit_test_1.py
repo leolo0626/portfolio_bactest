@@ -1,11 +1,16 @@
 import unittest
 from src.Portfolio import Portfolio
+from src.TradeRecordManager import TradeRecordManager
+from src.Trade import Trade
+from src.AccountSummary import AccountSummary
 from src.Order import Order
 from src.DataLibrary import DataLibrary
 import pandas as pd
 
 class Test1(unittest.TestCase):
-    portfolio = Portfolio()
+    trade_record_manager = TradeRecordManager()
+    account_summary = AccountSummary()
+    portfolio = Portfolio(trade_record_manager, account_summary)
     data_library = DataLibrary()
 
     def test_add_capital(self):
@@ -14,14 +19,16 @@ class Test1(unittest.TestCase):
         self.assertEqual(1000000, self.portfolio.net_asset_value)
 
     def test_order_amount_calculation(self):
-        buy_order = Order('700', 451.6, 500, 250, 'b')
+        buy_order = Order('700', '2021-06-03',451.6, 500, 250, 'b')
         self.assertEqual(226050 ,buy_order.total_amount)
-        sell_order = Order('700', 480.2, 500, 250, 's')
+        sell_order = Order('700', '2021-06-05',  480.2, 500, 250, 's')
         self.assertEqual(239850, sell_order.total_amount)
     
     def test_add_long_position(self):
-        first_buy_order  = Order('700', 451.6, 500, 250, 'b')
+        first_buy_order  = Order('700', '2021-06-05',  451.6, 500, 250, 'b')
         self.portfolio.add_long_position(first_buy_order)
+        trade = Trade(first_buy_order)
+        self.assertDictEqual(trade.__dict__, self.trade_record_manager.trade_records[0].__dict__)
         self.assertEqual(1, self.portfolio.size)
         self.assertEqual(773950, self.portfolio.cash)
         self.assertDictEqual({
@@ -36,8 +43,10 @@ class Test1(unittest.TestCase):
         }, self.portfolio.positions)
     
     def test_cover_position(self) : 
-        first_sell_order = Order('700',  480.2, 500, 250, 's')
+        first_sell_order = Order('700',  '2021-06-05', 480.2, 500, 250, 's')
         position = self.portfolio.cover_position(first_sell_order)
+        trade = Trade(first_sell_order)
+        self.assertDictEqual(trade.__dict__, self.trade_record_manager.trade_records[1].__dict__)
         self.assertEqual(0, self.portfolio.size)
         self.assertEqual(1013800, self.portfolio.cash)
         self.assertDictEqual({}, self.portfolio.positions)
@@ -57,7 +66,7 @@ class Test1(unittest.TestCase):
         self.assertEqual(['2382'], list(self.data_library.stock_price_library.keys()))
 
     def test_monitor_sell_cond(self) : 
-        new_order = Order('2382', 170, 500, 0, 'b')
+        new_order = Order('2382', '2021-03-31', 170, 500, 0, 'b')
         self.portfolio.add_long_position(new_order)
         self.assertEqual(1, self.portfolio.size)
         self.assertEqual(['2382'], list(self.portfolio.positions.keys()))
@@ -91,9 +100,11 @@ class Test1(unittest.TestCase):
         self.assertEqual('2382', self.portfolio.positions_pending_to_sell[0]['ticker'])
     
     def test_update_account_value(self):
-        self.portfolio = Portfolio()
+        self.trade_record_manager = TradeRecordManager()
+        self.account_summary = AccountSummary()
+        self.portfolio = Portfolio(self.trade_record_manager, self.account_summary)
         self.portfolio.add_capital(1000000)
-        new_order = Order('2382', 170, 500, 0, 'b')
+        new_order = Order('2382', '2021-03-31', 170, 500, 0, 'b')
         self.portfolio.add_long_position(new_order)
         self.assertEqual(915000, self.portfolio.cash)
         self.assertEqual(1000000, self.portfolio.net_asset_value)
@@ -105,6 +116,7 @@ class Test1(unittest.TestCase):
             self.portfolio.update_account_summary(date_time_list[i] ,self.data_library)
             self.assertEqual(net_asset_value[i], self.portfolio.net_asset_value)
             self.assertEqual(915000, self.portfolio.cash)
+            print(self.account_summary.history)
 
 
         

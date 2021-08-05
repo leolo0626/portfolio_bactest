@@ -1,13 +1,18 @@
 from .Account import Account
 from .Order import Order 
+from .Trade import Trade
 from .DataLibrary import DataLibrary
+from .TradeRecordManager import TradeRecordManager
+from .AccountSummary import AccountSummary
 
 class Portfolio(Account) :
-    def __init__ (self):
+    def __init__ (self, trade_record_manager : TradeRecordManager, account_summary : AccountSummary):
         super().__init__()
         self.size = 0
         self.positions = {}
         self.positions_pending_to_sell = []
+        self.trade_record_manager = trade_record_manager
+        self.account_summary = account_summary
 
     
     def add_long_position(self, order: Order):
@@ -23,7 +28,8 @@ class Portfolio(Account) :
                 'realized_pnl' : None
             }
             self.size = self.size + 1
-            super().decrease_account_value(order.total_amount)
+            super().decrease_account_value(order.total_amount) 
+            self.trade_record_manager.add_trade_record(Trade(order))
         else:
             raise Exception("Something went wrong in adding long position")
     
@@ -44,6 +50,7 @@ class Portfolio(Account) :
             else:
                 raise Exception("Something went wrong in cover position : shares in cover order > shares in portfolio")
             self.size = self.size - 1
+            self.trade_record_manager.add_trade_record(Trade(order))
             return target_position
         else:
             raise Exception("Something went wrong in cover position ")
@@ -58,6 +65,7 @@ class Portfolio(Account) :
             self.positions[position]['unrealized_pnl'] = self.positions[position]['market_value'] - self.positions[position]['total_cost']
             net_asset_value = net_asset_value + self.positions[position]['market_value'] 
         self.net_asset_value = net_asset_value + self.cash
+        self.account_summary.add_account_summary(date_time, self.net_asset_value, self.cash)
 
 
     def monitor_sell_cond(self, sell_cond_func, sell_cond_params):
