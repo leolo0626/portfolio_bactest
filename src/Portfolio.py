@@ -69,10 +69,10 @@ class Portfolio(Account) :
                 if closing_price is None :
                     closing_price = positions[position]['price']
                     
-                positions[position]['last_price'] = closing_price
-                positions[position]['market_value'] = closing_price * positions[position]['shares']
-                positions[position]['unrealized_pnl'] = positions[position]['market_value'] - positions[position]['total_cost']
-                net_asset_value = net_asset_value + positions[position]['market_value'] 
+            positions[position]['last_price'] = closing_price
+            positions[position]['market_value'] = closing_price * positions[position]['shares']
+            positions[position]['unrealized_pnl'] = positions[position]['market_value'] - positions[position]['total_cost']
+            net_asset_value = net_asset_value + positions[position]['market_value'] 
 
         self.net_asset_value = net_asset_value + self.cash
         self.account_summary.add_account_summary(date_time, self.net_asset_value, self.cash)
