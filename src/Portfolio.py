@@ -61,15 +61,21 @@ class Portfolio(Account) :
         positions = self.positions
         for position in positions : 
             stock_price = data_library.stock_price_library[position]
-            closing_price = stock_price.loc[stock_price.date_time == date_time, 'close'].values[0]
-            print(closing_price)
-            positions[position]['last_price'] = closing_price
-            positions[position]['market_value'] = closing_price * positions[position]['shares']
-            positions[position]['unrealized_pnl'] = positions[position]['market_value'] - positions[position]['total_cost']
-            net_asset_value = net_asset_value + positions[position]['market_value'] 
+            try : 
+                closing_price = stock_price.loc[stock_price.date_time == date_time, 'close'].values[0]
+            except :
+                print(f"{position} does not have last price at {date_time}")
+                closing_price = positions[position]['last_price']
+                if closing_price is None :
+                    closing_price = positions[position]['price']
+                    
+                positions[position]['last_price'] = closing_price
+                positions[position]['market_value'] = closing_price * positions[position]['shares']
+                positions[position]['unrealized_pnl'] = positions[position]['market_value'] - positions[position]['total_cost']
+                net_asset_value = net_asset_value + positions[position]['market_value'] 
+
         self.net_asset_value = net_asset_value + self.cash
         self.account_summary.add_account_summary(date_time, self.net_asset_value, self.cash)
-        print(positions)
         self.account_summary.add_position_history(date_time, copy.deepcopy(positions))
         self.positions = positions
 
@@ -80,7 +86,7 @@ class Portfolio(Account) :
             if sell_cond_func(**sell_cond_params) :
                 self.positions_pending_to_sell.append(self.positions[position])
 
-
+    
 
 
 
