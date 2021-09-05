@@ -4,16 +4,18 @@ from .Trade import Trade
 from .DataLibrary import DataLibrary
 from .TradeRecordManager import TradeRecordManager
 from .AccountSummary import AccountSummary
+from .ErrorManager import ErrorManager
 import copy
 
 class Portfolio(Account) :
-    def __init__ (self, trade_record_manager : TradeRecordManager, account_summary : AccountSummary):
+    def __init__ (self, trade_record_manager : TradeRecordManager, account_summary : AccountSummary, error_manager : ErrorManager):
         super().__init__()
         self.size = 0
         self.positions = {}
         self.positions_pending_to_sell = []
         self.trade_record_manager = trade_record_manager
         self.account_summary = account_summary
+        self.error_manager = error_manager
 
     
     def add_long_position(self, order: Order):
@@ -64,10 +66,14 @@ class Portfolio(Account) :
             try : 
                 closing_price = stock_price.loc[stock_price.date_time == date_time, 'close'].values[0]
             except :
-                print(f"{position} does not have last price at {date_time}")
+                error_message = f"{position} does not have last price at {date_time}"
+                # print(error_message)
                 closing_price = positions[position]['last_price']
                 if closing_price is None :
                     closing_price = positions[position]['price']
+                self.error_manager.add_error_message(position, self.update_account_summary.__name__, error_message)
+
+
                     
             positions[position]['last_price'] = closing_price
             positions[position]['market_value'] = closing_price * positions[position]['shares']
