@@ -1,5 +1,7 @@
+import pandas as pd
 class DataLibrary :
-    def __init__(self):
+    def __init__(self, path):
+        self.path = path
         self.sell_signal_library = {}
         self.buy_signal_library = {}
         self.stock_price_library = {}
@@ -12,5 +14,9 @@ class DataLibrary :
     
     def add_stock_price_library(self, ticker, stock_price_data):
         self.stock_price_library[ticker] = stock_price_data
+
+    def read_csv(self, ticker, location):
+        return pd.read_csv(self.path + '/' + ticker + f'_{location}.csv')
+
     
     

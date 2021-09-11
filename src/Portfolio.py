@@ -5,6 +5,7 @@ from .DataLibrary import DataLibrary
 from .TradeRecordManager import TradeRecordManager
 from .AccountSummary import AccountSummary
 from .ErrorManager import ErrorManager
+import multiprocessing
 import copy
 
 class Portfolio(Account) :
@@ -58,27 +59,30 @@ class Portfolio(Account) :
         else:
             raise Exception("Something went wrong in cover position ")
 
-    def update_account_summary(self, date_time , data_library : DataLibrary) :
+    def update_account_summary(self, date_time , data_library : DataLibrary, location='US') :
+
         net_asset_value = 0
         positions = self.positions
-        for position in positions : 
-            stock_price = data_library.stock_price_library[position]
-            try : 
+
+
+        for position in positions :
+            # stock_price = data_library.stock_price_library[position]
+            stock_price = data_library.read_csv(position, location)
+            # stock_price = pd.read_csv('')
+            try:
                 closing_price = stock_price.loc[stock_price.date_time == date_time, 'close'].values[0]
-            except :
+            except:
                 error_message = f"{position} does not have last price at {date_time}"
                 # print(error_message)
                 closing_price = positions[position]['last_price']
-                if closing_price is None :
+                if closing_price is None:
                     closing_price = positions[position]['price']
                 self.error_manager.add_error_message(position, self.update_account_summary.__name__, error_message)
 
-
-                    
             positions[position]['last_price'] = closing_price
             positions[position]['market_value'] = closing_price * positions[position]['shares']
             positions[position]['unrealized_pnl'] = positions[position]['market_value'] - positions[position]['total_cost']
-            net_asset_value = net_asset_value + positions[position]['market_value'] 
+            net_asset_value = net_asset_value + positions[position]['market_value']
 
         self.net_asset_value = net_asset_value + self.cash
         self.account_summary.add_account_summary(date_time, self.net_asset_value, self.cash)
